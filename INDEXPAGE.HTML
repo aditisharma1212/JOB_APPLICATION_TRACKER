@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobTrack Pro — Job Application Tracker</title>
+  <meta name="description" content="A polished, single-file job application tracker with landing, tracker, and dashboard sections. Save to LocalStorage, export/import CSV, dark mode, charts." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="track.png" />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --bg-soft: #12182b;
+      --card: #161d33;
+      --text: #ecf1ff;
+      --muted: #a9b3ce;
+      --brand: #7c5cff;
+      --brand-2: #00d2ff;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+    }
+    /* Light mode overrides */
+    :root.light {
+      --bg: #f6f7fb;
+      --bg-soft: #ffffff;
+      --card: #ffffff;
+      --text: #0d1222;
+      --muted: #4a536b;
+      --shadow: 0 12px 28px rgba(16,24,40,.08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: radial-gradient(1200px 800px at 80% -10%, rgba(124,92,255,.18), transparent 70%),
+                                   radial-gradient(1200px 800px at -10% -10%, rgba(0,210,255,.14), transparent 70%), var(--bg);
+      color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* Top Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(120%) blur(10px);
+      background: linear-gradient(180deg, rgba(11,16,32,.8), rgba(11,16,32,.4));
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    :root.light .nav { background: rgba(255,255,255,.7); border-bottom: 1px solid #eef0f6; }
+    .nav-inner { max-width: 1200px; margin: 0 auto; display:flex; align-items:center; justify-content:space-between; padding: 14px 20px; }
+    .brand { display:flex; gap:10px; align-items:center; font-weight: 800; letter-spacing: .3px; }
+    .brand .logo { width: 34px; height: 34px; border-radius: 10px; background: conic-gradient(from 180deg, var(--brand), var(--brand-2)); box-shadow: 0 6px 20px rgba(124,92,255,.45); }
+    .nav-links { display:flex; gap:18px; }
+    .nav-links a { opacity: .85; font-weight: 600; padding:8px 12px; border-radius: 10px; transition: .2s ease; }
+    .nav-links a:hover { background: rgba(255,255,255,.08); opacity:1; }
+    .actions { display:flex; gap:10px; align-items:center; }
+    .btn { display:inline-flex; align-items:center; gap:8px; border:0; border-radius: 12px; padding:10px 14px; font-weight:700; cursor:pointer; transition: transform .05s ease, box-shadow .2s ease, background .2s ease; }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color:white; box-shadow: 0 12px 26px rgba(124,92,255,.35); }
+    .btn-ghost { background: transparent; color: var(--text); border:1px solid rgba(255,255,255,.12); }
+    :root.light .btn-ghost { border-color:#e1e6f3; }
+    .toggle { width:44px; height:28px; border-radius:20px; background: #2a3250; position:relative; border:1px solid rgba(255,255,255,.12); cursor:pointer; }
+    .toggle .dot { width:20px; height:20px; background:white; border-radius:50%; position:absolute; top:3px; left:3px; transition: left .2s ease; }
+    :root.light .toggle { background:#e8ecf7; border-color:#e1e6f3; }
+    :root.light .toggle .dot { left:21px; }
+
+    /* Sections */
+    section { padding: 70px 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* Hero */
+    .hero { display:grid; grid-template-columns: 1.2fr 1fr; gap: 30px; align-items:center; }
+    .hero h1 { font-family: Poppins, Inter, sans-serif; font-size: clamp(32px, 5vw, 54px); line-height: 1.05; margin: 0; }
+    .hero p { color: var(--muted); font-size: clamp(15px, 1.6vw, 18px); margin: 14px 0 22px; }
+    .hero .card { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-xl); padding: 22px; box-shadow: var(--shadow); }
+    :root.light .hero .card { background: #fff; border-color:#eef0f6; }
+    .stats { display:grid; grid-template-columns: repeat(3, 1fr); gap:14px; margin-top: 14px; }
+    .stat { background: var(--card); padding:16px; border-radius: 16px; border:1px solid rgba(255,255,255,.08); }
+    :root.light .stat { border-color:#eef0f6; }
+    .stat .n { font-weight:800; font-size: 22px; }
+    .badges { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+    .badge { padding:6px 10px; border-radius:999px; font-size:12px; border:1px dashed rgba(255,255,255,.2); opacity:.8; }
+    :root.light .badge { border-color:#dce3f5; }
+
+    /* Tracker */
+    .panel { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-xl); padding: 18px; box-shadow: var(--shadow); }
+    :root.light .panel { background:#fff; border-color:#eef0f6; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .input, select { background: var(--bg-soft); border:1px solid rgba(255,255,255,.14); color: var(--text); border-radius: 12px; padding:12px 12px; font: inherit; }
+    :root.light .input, :root.light select { background:#f8faff; border-color:#e7eaf5; color:var(--text); }
+    .table { width:100%; border-collapse: collapse; margin-top:14px; }
+    .table th, .table td { padding:14px; text-align:left; border-bottom:1px dashed rgba(255,255,255,.12); }
+    :root.light .table th, :root.light .table td { border-bottom-color:#eef0f6; }
+    .table th { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+    .pill { padding:6px 10px; border-radius: 999px; font-size: 12px; font-weight:700; }
+    .pill.applied { background: rgba(124,92,255,.15); border: 1px solid rgba(124,92,255,.4); }
+    .pill.interview { background: rgba(0,210,255,.15); border: 1px solid rgba(0,210,255,.4); }
+    .pill.offer { background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.4); }
+    .pill.rejected { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.4); }
+    .row-actions { display:flex; gap:8px; }
+
+    /* Kanban */
+    .kanban { display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-top:14px; }
+    .col { background: var(--card); border:1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 10px; min-height: 160px; }
+    :root.light .col { border-color:#eef0f6; }
+    .col h4 { margin:4px 6px 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+    .card-job { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px; margin: 8px; cursor: grab; }
+    :root.light .card-job { background:#fff; border-color:#eef0f6; }
+    .card-job .title { font-weight:700; }
+    .card-job .meta { font-size:12px; color: var(--muted); }
+
+    /* Dashboard */
+    .grid-2 { display:grid; grid-template-columns: 1.2fr 1fr; gap:14px; }
+    .metrics { display:grid; grid-template-columns: repeat(4,1fr); gap:12px; }
+    .metric { background: var(--card); border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 16px; text-align: center; }
+    :root.light .metric { border-color:#eef0f6; }
+    .metric .n { font-size: 28px; font-weight: 800; }
+    .subtle { color: var(--muted); font-size: 13px; }
+
+    /* Modal */
+    .modal { position: fixed; inset: 0; background: rgba(3,7,18,.6); display:none; align-items:center; justify-content:center; padding: 16px; z-index:60; }
+    .modal .sheet { background: var(--card); border:1px solid rgba(255,255,255,.12); border-radius: 20px; max-width: 680px; width:100%; padding: 16px; box-shadow: var(--shadow); }
+    :root.light .modal .sheet { background:#fff; border-color:#eef0f6; }
+    .grid { display:grid; grid-template-columns: repeat(2,1fr); gap:12px; }
+    .grid-1 { display:grid; gap:12px; }
+    .sheet h3 { margin: 4px 6px 6px; }
+
+    .help { font-size: 12px; color: var(--muted); }
+
+    .empty { border:1px dashed rgba(255,255,255,.18); padding: 20px; border-radius: 14px; text-align:center; color: var(--muted); }
+
+    .footer { text-align:center; color: var(--muted); padding: 40px 0 60px; }
+
+    /* Responsive */
+    @media (max-width: 980px) {
+      .hero { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: repeat(2,1fr); }
+      .kanban { grid-template-columns: repeat(2,1fr); }
+      .stats { grid-template-columns: repeat(2,1fr); }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-inner" style="padding: 22px 40px;">
+      <div class="brand" style="gap:24px;">
+        <!-- Rounded square logo with gradient fill (blue → purple) and image overlay -->
+        <div style="
+          width:80px;
+          height:80px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          border-radius:22px;
+          background: linear-gradient(135deg, #00d2ff 0%, #7c5cff 100%);
+          box-shadow:0 8px 28px rgba(124,92,255,.35);
+          position:relative;
+          overflow:hidden;
+        ">
+          <img src="track.png" alt="JobHound Logo" style="width:64px;height:64px;object-fit:contain;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.10);background:transparent;">
+        </div>
+        <span style="font-weight:800;letter-spacing:.3px;font-size:2.8rem;line-height:1;color:var(--brand);margin-left:18px;">
+          JobHound
+        </span>
+      </div>
+      <div class="nav-links" style="gap:24px;">
+        <a href="#home">Home</a>
+        <a href="#tracker">Tracker</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="actions" style="gap:16px;">
+        <button id="exportBtn" title="Export CSV" class="btn btn-ghost">Export</button>
+        <label class="btn btn-ghost" for="importFile" title="Import CSV">Import</label>
+        <input id="importFile" type="file" accept=".csv" hidden />
+        <div id="modeToggle" class="toggle" title="Toggle theme"><div class="dot"></div></div>
+        <button id="newBtn" class="btn btn-primary">+ New</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO / HOME -->
+  <section id="home" class="container">
+    <div class="hero">
+      <div>
+        <h1>Track every application. <br/>Land your next offer.</h1>
+        <p>All-in-one job application tracker with powerful filters, Kanban view, and a live dashboard. Designed for placements and portfolio showcases. Your data never leaves your browser.</p>
+        <div class="badges">
+          <span class="badge">LocalStorage</span>
+          <span class="badge">CSV Export/Import</span>
+          <span class="badge">Kanban + Table</span>
+          <span class="badge">Dark / Light</span>
+          <span class="badge">Keyboard Shortcuts</span>
+        </div>
+        <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap">
+          <a href="#tracker" class="btn btn-primary">Open Tracker</a>
+          <a href="#dashboard" class="btn btn-ghost">View Dashboard</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="stats">
+          <div class="stat"><div class="n" id="statTotal">0</div><div class="subtle">Total</div></div>
+          <div class="stat"><div class="n" id="statInterviews">0</div><div class="subtle">Interviews</div></div>
+          <div class="stat"><div class="n" id="statOffers">0</div><div class="subtle">Offers</div></div>
+          <div class="stat"><div class="n" id="statApplied">0</div><div class="subtle">Applied</div></div>
+          <div class="stat"><div class="n" id="statRejected">0</div><div class="subtle">Rejected</div></div>
+          <div class="stat"><div class="n" id="statThisMonth">0</div><div class="subtle">This month</div></div>
+        </div>
+        <p class="help">Tip: Press <b>N</b> to add a new application, <b>/</b> to search, and <b>?</b> for help.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section id="tracker" class="container">
+    <h2 style="margin:0 0 10px">Tracker</h2>
+    <div class="panel">
+      <div class="toolbar">
+        <input id="q" class="input" placeholder="Search company, role, tags, notes ( / )" />
+        <select id="filterStatus">
+          <option value="">All Status</option>
+          <option>Applied</option>
+          <option>Interview</option>
+          <option>Offer</option>
+          <option>Rejected</option>
+        </select>
+        <select id="filterSort">
+          <option value="appliedAt_desc">Newest</option>
+          <option value="appliedAt_asc">Oldest</option>
+          <option value="deadline_asc">Closest deadline</option>
+          <option value="priority_desc">Highest priority</option>
+        </select>
+        <input id="filterTag" class="input" placeholder="Tag filter (e.g. campus, SDE, fintech)" />
+        <button id="clearFilters" class="btn btn-ghost">Clear</button>
+        <div style="margin-left:auto"></div>
+        <button id="toggleView" class="btn btn-ghost" title="Toggle Kanban/Table">Kanban</button>
+        <button id="newBtn2" class="btn btn-primary">+ New</button>
+      </div>
+
+      <!-- Table View -->
+      <div id="tableView">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Applied</th>
+              <th>Deadline</th>
+              <th>Location</th>
+              <th>Tags</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="emptyTable" class="empty" style="display:none">No applications match your filters.</div>
+      </div>
+
+      <!-- Kanban View -->
+      <div id="kanbanView" style="display:none">
+        <div class="kanban">
+          <div class="col" data-col="Applied"><h4>Applied</h4><div class="list" id="colApplied"></div></div>
+          <div class="col" data-col="Interview"><h4>Interview</h4><div class="list" id="colInterview"></div></div>
+          <div class="col" data-col="Offer"><h4>Offer</h4><div class="list" id="colOffer"></div></div>
+          <div class="col" data-col="Rejected"><h4>Rejected</h4><div class="list" id="colRejected"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard" class="container">
+    <h2 style="margin:0 0 10px">Dashboard</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <canvas id="chartTimeline" height="220"></canvas>
+      </div>
+      <div class="panel">
+        <canvas id="chartBreakdown" height="220"></canvas>
+      </div>
+    </div>
+    <div class="metrics" style="margin-top:14px">
+      <div class="metric"><div class="n" id="mTotal">0</div><div class="subtle">Total Applications</div></div>
+      <div class="metric"><div class="n" id="mInterview">0</div><div class="subtle">Interviews</div></div>
+      <div class="metric"><div class="n" id="mOffer">0</div><div class="subtle">Offers</div></div>
+      <div class="metric"><div class="n" id="mRejected">0</div><div class="subtle">Rejected</div></div>
+    </div>
+  </section>
+
+  <!-- FAQ / HELP -->
+  <section id="faq" class="container">
+    <h2 style="margin:0 0 10px">FAQ & Shortcuts</h2>
+    <div class="panel">
+      <ul>
+        <li><b>N</b> — New application</li>
+        <li><b>/</b> — Focus search</li>
+        <li><b>K</b> — Toggle Kanban/Table</li>
+        <li>Your data stays in your browser (LocalStorage). Use Export to back up / share as CSV.</li>
+      </ul>
+    </div>
+    <div class="footer">© <span id="yyyy"></span> JobTrack Pro • Designed for placements and portfolios</div>
+  </section>
+
+  <!-- MODAL: NEW / EDIT -->
+  <div id="modal" class="modal" aria-hidden="true" role="dialog">
+    <div class="sheet">
+      <h3 id="modalTitle">Add Application</h3>
+      <div class="grid" style="margin-top:10px">
+        <div class="grid-1">
+          <label>Company<input id="fCompany" class="input" placeholder="e.g., Google"/></label>
+          <label>Role<input id="fRole" class="input" placeholder="e.g., SDE Intern"/></label>
+          <label>Location<input id="fLocation" class="input" placeholder="e.g., Bengaluru, Remote"/></label>
+          <label>Link<input id="fLink" class="input" placeholder="e.g., careers page URL"/></label>
+        </div>
+        <div class="grid-1">
+          <label>Status<select id="fStatus" class="input">
+            <option>Applied</option>
+            <option>Interview</option>
+            <option>Offer</option>
+            <option>Rejected</option>
+          </select></label>
+          <label>Applied Date<input id="fAppliedAt" class="input" type="date"/></label>
+          <label>Deadline<input id="fDeadline" class="input" type="date"/></label>
+          <label>Priority<select id="fPriority" class="input">
+            <option value="1">Low</option>
+            <option value="2">Medium</option>
+            <option value="3">High</option>
+          </select></label>
+        </div>
+      </div>
+      <label style="display:block; margin-top:10px">Tags (comma-separated)
+        <input id="fTags" class="input" placeholder="e.g., campus, SDE, fintech"/>
+      </label>
+      <label style="display:block; margin-top:10px">Notes
+        <textarea id="fNotes" class="input" rows="3" placeholder="Add preparation notes, contacts, etc."></textarea>
+      </label>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px">
+        <button id="deleteBtn" class="btn btn-ghost" style="display:none">Delete</button>
+        <button id="closeModal" class="btn btn-ghost">Cancel</button>
+        <button id="saveModal" class="btn btn-primary">Save</button>
+      </div>
+      <div class="help">Pro tip: paste a URL in <b>Link</b> and click it in the table to open directly.</div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" style="position:fixed; bottom:20px; left:50%; transform: translateX(-50%) translateY(20px); opacity:0; transition:.3s; background: var(--card); border:1px solid rgba(255,255,255,.14); color:var(--text); padding:10px 14px; border-radius:12px; z-index:80; box-shadow:var(--shadow)">Saved</div>
+
+  <!-- CHARTS CDN (optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+  <script>
+    // --------- Utilities ---------
+    const $ = sel => document.querySelector(sel);
+    const $all = sel => Array.from(document.querySelectorAll(sel));
+    const fmt = (d) => d ? new Date(d).toLocaleDateString() : '';
+    const todayStr = () => new Date().toISOString().slice(0,10);
+    const uuid = () => crypto.randomUUID ? crypto.randomUUID() : (Date.now().toString(36)+Math.random().toString(36).slice(2));
+
+    // --------- State ---------
+    const LS_KEY = 'jobtrack_pro_v1';
+    let jobs = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    let editingId = null;
+
+    const save = () => { localStorage.setItem(LS_KEY, JSON.stringify(jobs)); refresh(); toast('Saved'); };
+    const toast = (msg) => { const t = $('#toast'); t.textContent = msg; t.style.opacity = 1; t.style.transform = 'translateX(-50%) translateY(0)'; setTimeout(()=>{ t.style.opacity = 0; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 1400); };
+
+    // --------- Theme ---------
+    const THEME_KEY = 'jobtrack_theme';
+    const setTheme = (mode) => { document.documentElement.classList.toggle('light', mode === 'light'); localStorage.setItem(THEME_KEY, mode); };
+    const initTheme = () => { const pref = localStorage.getItem(THEME_KEY) || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'); setTheme(pref); };
+
+    // --------- Filters / View ---------
+    const state = { q: '', status: '', sort: 'appliedAt_desc', tag: '', view: localStorage.getItem('jobtrack_view') || 'table' };
+
+    // --------- Rendering: Table ---------
+    function renderTable() {
+      const body = $('#rows');
+      body.innerHTML = '';
+      const filtered = applyFilters(jobs);
+      if (!filtered.length) { $('#emptyTable').style.display = 'block'; return; } else { $('#emptyTable').style.display = 'none'; }
+      for (const j of filtered) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><a href="${j.link || '#'}" target="_blank" rel="noopener" style="font-weight:700">${j.company}</a></td>
+          <td>${j.role}</td>
+          <td><span class="pill ${clsStatus(j.status)}">${j.status}</span></td>
+          <td>${fmt(j.appliedAt)}</td>
+          <td>${fmt(j.deadline)}</td>
+          <td>${j.location || ''}</td>
+          <td>${(j.tags||[]).join(', ')}</td>
+          <td class="row-actions">
+            <button class="btn btn-ghost" onclick="openEdit('${j.id}')">Edit</button>
+            <button class="btn btn-ghost" onclick="quickMove('${j.id}')">Move →</button>
+          </td>`;
+        body.appendChild(tr);
+      }
+    }
+
+    function clsStatus(s){
+      return ({Applied:'applied', Interview:'interview', Offer:'offer', Rejected:'rejected'})[s] || 'applied';
+    }
+
+    // --------- Rendering: Kanban ---------
+    function renderKanban(){
+      const data = applyFilters(jobs);
+      const cols = { Applied: $('#colApplied'), Interview: $('#colInterview'), Offer: $('#colOffer'), Rejected: $('#colRejected') };
+      Object.values(cols).forEach(c => c.innerHTML = '');
+      for (const j of data){
+        const el = document.createElement('div');
+        el.className = 'card-job';
+        el.draggable = true; el.dataset.id = j.id;
+        el.innerHTML = `<div class="title">${j.company} — ${j.role}</div>
+                        <div class="meta">${fmt(j.appliedAt)} · ${(j.tags||[]).join(', ')}</div>`;
+        el.addEventListener('dragstart', (e)=>{ e.dataTransfer.setData('text/plain', j.id); });
+        cols[j.status]?.appendChild(el);
+      }
+    }
+
+    // Drag & drop targets
+    $all('.col').forEach(col => {
+      col.addEventListener('dragover', e => e.preventDefault());
+      col.addEventListener('drop', e => { e.preventDefault(); const id = e.dataTransfer.getData('text/plain'); const j = jobs.find(x=>x.id===id); if(j){ j.status = col.dataset.col; save(); }});
+    });
+
+    // --------- Filters & Search ---------
+    function applyFilters(arr){
+      const q = state.q.toLowerCase().trim();
+      const t = state.tag.toLowerCase().trim();
+      let res = arr.filter(j => {
+        const hay = [j.company, j.role, j.notes, (j.tags||[]).join(' '), j.location].join(' ').toLowerCase();
+        const okQ = !q || hay.includes(q);
+        const okS = !state.status || j.status === state.status;
+        const okT = !t || (j.tags||[]).some(x => x.toLowerCase().includes(t));
+        return okQ && okS && okT;
+      });
+      const [field, dir] = state.sort.split('_');
+      res.sort((a,b)=>{
+        if(field==='deadline') return cmpDate(a.deadline,b.deadline, dir==='asc');
+        if(field==='priority') return dir==='asc' ? (a.priority||1)-(b.priority||1) : (b.priority||1)-(a.priority||1);
+        return cmpDate(a.appliedAt,b.appliedAt, dir==='asc');
+      });
+      return res;
+    }
+    function cmpDate(a,b,asc){ const na = a? new Date(a).getTime(): 9e15; const nb = b? new Date(b).getTime(): 9e15; return asc? na-nb : nb-na; }
+
+    // --------- Modal ---------
+    function openNew(){ editingId=null; $('#modalTitle').textContent='Add Application'; $('#deleteBtn').style.display='none'; fillForm({ appliedAt: todayStr(), status:'Applied', priority:2 }); showModal(true); }
+    function openEdit(id){ const j = jobs.find(x=>x.id===id); if(!j) return; editingId=id; $('#modalTitle').textContent='Edit Application'; $('#deleteBtn').style.display='inline-flex'; fillForm(j); showModal(true); }
+    function fillForm(j){ $('#fCompany').value=j.company||''; $('#fRole').value=j.role||''; $('#fLocation').value=j.location||''; $('#fLink').value=j.link||''; $('#fStatus').value=j.status||'Applied'; $('#fAppliedAt').value=j.appliedAt||''; $('#fDeadline').value=j.deadline||''; $('#fPriority').value=j.priority||2; $('#fTags').value=(j.tags||[]).join(', '); $('#fNotes').value=j.notes||''; }
+    function readForm(){ return { id: editingId || uuid(), company: $('#fCompany').value.trim(), role: $('#fRole').value.trim(), location: $('#fLocation').value.trim(), link: $('#fLink').value.trim(), status: $('#fStatus').value, appliedAt: $('#fAppliedAt').value, deadline: $('#fDeadline').value, priority: parseInt($('#fPriority').value||'2'), tags: $('#fTags').value.split(',').map(s=>s.trim()).filter(Boolean), notes: $('#fNotes').value.trim() }; }
+
+    function showModal(v){ $('#modal').style.display = v? 'flex': 'none'; $('#modal').setAttribute('aria-hidden', v? 'false':'true'); if(v) $('#fCompany').focus(); }
+
+    // Save / Delete
+    function saveForm(){ const j = readForm(); if(!j.company || !j.role){ alert('Company and Role are required'); return; } const idx = jobs.findIndex(x=>x.id===j.id); if(idx>=0) jobs[idx]=j; else jobs.push(j); save(); showModal(false); }
+    function deleteCurrent(){ if(!editingId) return; if(confirm('Delete this application?')){ jobs = jobs.filter(x=>x.id!==editingId); save(); showModal(false); }}
+
+    // Quick move status cycle
+    function quickMove(id){ const order = ['Applied','Interview','Offer','Rejected']; const j = jobs.find(x=>x.id===id); if(!j) return; const i = order.indexOf(j.status); j.status = order[(i+1)%order.length]; save(); }
+
+    // --------- Export / Import ---------
+    function toCSV(arr){
+      const header = ['id','company','role','status','appliedAt','deadline','location','tags','link','priority','notes'];
+      const lines = [header.join(',')];
+      for(const j of arr){
+        const row = [j.id, j.company, j.role, j.status, j.appliedAt||'', j.deadline||'', j.location||'', (j.tags||[]).join('|'), j.link||'', j.priority||'', (j.notes||'').replaceAll('\n','\\n')]
+          .map(v => '"'+String(v).replaceAll('"','""')+'"');
+        lines.push(row.join(','));
+      }
+      return lines.join('\n');
+    }
+    function download(filename, text){ const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'text/csv'})); a.download = filename; a.click(); URL.revokeObjectURL(a.href); }
+    function exportCSV(){ download('jobtrack.csv', toCSV(jobs)); }
+
+    function importCSV(file){ const reader = new FileReader(); reader.onload = () => { const lines = reader.result.split(/\r?\n/).filter(Boolean); const header = lines.shift().split(',').map(h=>h.replaceAll('"','').trim()); const idx = (name)=> header.indexOf(name);
+        const out=[]; for(const line of lines){ const cols = parseCSVLine(line); const obj = { id: cols[idx('id')]||uuid(), company: cols[idx('company')]||'', role: cols[idx('role')]||'', status: cols[idx('status')]||'Applied', appliedAt: cols[idx('appliedAt')]||'', deadline: cols[idx('deadline')]||'', location: cols[idx('location')]||'', tags: (cols[idx('tags')]||'').split('|').filter(Boolean), link: cols[idx('link')]||'', priority: parseInt(cols[idx('priority')]||'2'), notes: (cols[idx('notes')]||'').replaceAll('\\n','\n') }; out.push(obj); }
+        jobs = mergeById(jobs, out); save(); toast('Imported'); }; reader.readAsText(file); }
+
+    function parseCSVLine(line){
+      const res=[]; let cur=''; let inQ=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(inQ){ if(ch==='"' && line[i+1]==='"'){ cur+='"'; i++; } else if(ch==='"'){ inQ=false; } else { cur+=ch; } } else { if(ch===','){ res.push(cur); cur=''; } else if(ch==='"'){ inQ=true; } else { cur+=ch; } } } res.push(cur); return res; }
+    function mergeById(a,b){ const map = new Map(a.map(x=>[x.id,x])); for(const j of b){ map.set(j.id, j); } return Array.from(map.values()); }
+
+    // --------- Dashboard / Stats ---------
+    let chart1, chart2;
+    function refreshStats(){
+      const total = jobs.length;
+      const c = (s)=> jobs.filter(j=>j.status===s).length;
+      const thisMonth = jobs.filter(j=> j.appliedAt && new Date(j.appliedAt).getMonth()===new Date().getMonth() && new Date(j.appliedAt).getFullYear()===new Date().getFullYear()).length;
+      $('#statTotal').textContent = total; $('#statInterviews').textContent=c('Interview'); $('#statOffers').textContent=c('Offer'); $('#statApplied').textContent=c('Applied'); $('#statRejected').textContent=c('Rejected'); $('#statThisMonth').textContent=thisMonth;
+      $('#mTotal').textContent=total; $('#mInterview').textContent=c('Interview'); $('#mOffer').textContent=c('Offer'); $('#mRejected').textContent=c('Rejected');
+
+      const byMonth = aggregateByMonth(jobs);
+      const labels = Object.keys(byMonth);
+      const vals = Object.values(byMonth);
+
+      if(window.Chart){
+        if(chart1) chart1.destroy();
+        chart1 = new Chart($('#chartTimeline'), { type:'line', data:{ labels, datasets:[{ label:'Applications', data: vals, tension:.3, fill:false }] }, options:{ plugins:{ legend:{ display:false } }, scales:{ x:{ grid:{ display:false } }, y:{ beginAtZero:true } } } });
+        if(chart2) chart2.destroy();
+        chart2 = new Chart($('#chartBreakdown'), { type:'doughnut', data:{ labels:['Applied','Interview','Offer','Rejected'], datasets:[{ data:[c('Applied'),c('Interview'),c('Offer'),c('Rejected')] }] }, options:{ plugins:{ legend:{ position:'bottom' } } } });
+      }
+    }
+
+    function aggregateByMonth(arr){
+      const map = new Map();
+      for(const j of arr){ if(!j.appliedAt) continue; const d = new Date(j.appliedAt); const k = ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}; map.set(k, (map.get(k)||0)+1); }
+      // ensure chronological
+      return Object.fromEntries(Array.from(map.entries()).sort(([a],[b])=> a.localeCompare(b)));
+    }
+
+    // --------- Refresh UI (both views) ---------
+    function refresh(){
+      if(state.view==='kanban'){ $('#kanbanView').style.display='block'; $('#tableView').style.display='none'; renderKanban(); } else { $('#kanbanView').style.display='none'; $('#tableView').style.display='block'; renderTable(); }
+      refreshStats();
+    }
+
+    // --------- Init seed (if empty) ---------
+    function seed(){ if(jobs.length) return; jobs = [
+      { id: uuid(), company:'Acme Corp', role:'SDE Intern', status:'Applied', appliedAt: todayStr(), deadline:'', location:'Remote', tags:['campus','SDE'], link:'', priority:3, notes:'Referred by senior.' },
+      { id: uuid(), company:'FinX', role:'Data Analyst', status:'Interview', appliedAt: todayStr(), deadline:'', location:'Mumbai', tags:['fintech'], link:'', priority:2, notes:'Round 1 cleared.' },
+      { id: uuid(), company:'Healthify', role:'Frontend Dev', status:'Offer', appliedAt: todayStr(), deadline:'', location:'Bengaluru', tags:['react'], link:'', priority:3, notes:'Offer pending negotiation.' },
+    ]; save(); }
+
+    // --------- Event Listeners ---------
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      $('#yyyy').textContent = new Date().getFullYear();
+      seed(); // comment this line if you don't want demo data on first load
+
+      // toolbar
+      $('#q').addEventListener('input', e => { state.q = e.target.value; refresh(); });
+      $('#filterStatus').addEventListener('change', e => { state.status = e.target.value; refresh(); });
+      $('#filterSort').addEventListener('change', e => { state.sort = e.target.value; refresh(); });
+      $('#filterTag').addEventListener('input', e => { state.tag = e.target.value; refresh(); });
+      $('#clearFilters').addEventListener('click', ()=>{ state.q=''; state.status=''; state.sort='appliedAt_desc'; state.tag=''; $('#q').value=''; $('#filterStatus').value=''; $('#filterSort').value='appliedAt_desc'; $('#filterTag').value=''; refresh(); });
+
+      // view toggle
+      const applyView = () => { localStorage.setItem('jobtrack_view', state.view); refresh(); $('#toggleView').textContent = state.view==='kanban'? 'Table' : 'Kanban'; };
+      $('#toggleView').addEventListener('click', ()=>{ state.view = state.view==='kanban' ? 'table' : 'kanban'; applyView(); });
+
+      // new buttons
+      $('#newBtn').addEventListener('click', openNew);
+      $('#newBtn2').addEventListener('click', openNew);
+
+      // modal
+      $('#closeModal').addEventListener('click', ()=> showModal(false));
+      $('#saveModal').addEventListener('click', saveForm);
+      $('#deleteBtn').addEventListener('click', deleteCurrent);
+
+      // export / import
+      $('#exportBtn').addEventListener('click', exportCSV);
+      $('#importFile').addEventListener('change', e => { if(e.target.files?.[0]) importCSV(e.target.files[0]); e.target.value=''; });
+
+      // theme toggle
+      $('#modeToggle').addEventListener('click', ()=>{ const next = document.documentElement.classList.contains('light') ? 'dark' : 'light'; setTheme(next); });
+
+      // keyboard shortcuts
+      document.addEventListener('keydown', (e)=>{
+        if(e.key==='/' && !e.metaKey && !e.ctrlKey){ e.preventDefault(); $('#q').focus(); }
+        if(e.key==='n' || e.key==='N'){ openNew(); }
+        if(e.key==='k' || e.key==='K'){ state.view = state.view==='kanban' ? 'table' : 'kanban'; $('#toggleView').click(); }
+        if(e.key==='?' ){ alert('Shortcuts:\nN = New application\n/ = Search\nK = Toggle Kanban/Table'); }
+      });
+
+      refresh();
+    });
+
+    // Expose some functions globally for inline handlers
+    window.openEdit = openEdit;
+    window.quickMove = quickMove;
+
+  </script>
+</body>
+</html>
+</html>
+</html>

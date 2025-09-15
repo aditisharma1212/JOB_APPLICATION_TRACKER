@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobHound - Login</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="track.png" />
+
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background: #1e293b;
+      padding: 40px 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      text-align: center;
+      width: 100%;
+      max-width: 420px;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .logo img {
+      width: 55px;
+      height: 55px;
+      border-radius: 12px;
+      margin-right: 10px;
+      box-shadow: 0 0 15px rgba(96,165,250,0.5);
+    }
+    .logo h1 {
+      font-size: 26px;
+      font-weight: bold;
+      background: linear-gradient(to right, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 10px rgba(96,165,250,0.5);
+    }
+
+    .google {
+      background-color: #4285f4;
+      color: #fff;
+    }
+
+    .linkedin {
+      background-color: #0077b5;
+      color: #fff;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-size: 15px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 6px rgba(96,165,250,0.6);
+      outline: none;
+    }
+
+    .yellow-btn {
+      background: linear-gradient(to right, #3b82f6, #8b5cf6);
+      color: white;
+    }
+
+    a {
+      text-decoration: none;
+      color: #60a5fa;
+      font-weight: 500;
+    }
+
+    .footer {
+      margin-top: 15px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <img src="track.png" alt="JobHound Logo" />
+      <h1>JobHound</h1>
+    </div>
+
+    <h2>Login to your account</h2>
+
+    <form action="login_process.php" method="post">
+      <input type="email" name="email" placeholder="Email" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <button type="submit" class="btn yellow-btn">Sign In</button>
+    </form>
+
+    <p><a href="#">Forgot Password?</a></p>
+
+    <button class="btn google">Continue with Google</button>
+    <button class="btn linkedin">Continue with LinkedIn</button>
+
+    <p>Not a member yet? <a href="signup.html">Create an account</a></p>
+
+    <div class="footer">
+      © 2025 JobHound. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
+
